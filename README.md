@@ -2,7 +2,7 @@
 
 Interactive 3D showcase demonstrating how [Cohere's North](https://cohere.com) platform transforms manufacturing operations with agentic AI.
 
-**[Launch Demo →](https://scaling-waddle-7per9zw.pages.github.io/)**
+**[Launch Demo →](https://lennert-cohere.github.io/manufacturing-showcase/)**
 
 ## Overview
 
