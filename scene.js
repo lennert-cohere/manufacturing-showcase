@@ -1055,8 +1055,6 @@ function playIntro() {
 
   introEl.classList.remove('hidden');
 
-  let skipped = false;
-
   const hideIntro = () => {
     lines.forEach(l => { l.classList.remove('visible'); l.classList.add('fade-out'); });
     setTimeout(() => introEl.classList.add('hidden'), 700);
@@ -1070,20 +1068,6 @@ function playIntro() {
     });
   };
 
-  const skip = () => {
-    if (skipped) return;
-    skipped = true;
-    introBlurActive = false;
-    container.classList.remove('intro-blur');
-    gsap.killTweensOf(camera.position);
-    camera.position.set(CAM_DEFAULT.x, CAM_DEFAULT.y, CAM_DEFAULT.z);
-    camera.lookAt(lookAt); controls.target.copy(lookAt);
-    isAnimating = false; controls.autoRotate = true;
-    hideIntro();
-    document.getElementById('hint-text').classList.remove('hidden');
-  };
-  renderer.domElement.addEventListener('click', skip, { once: true });
-
   // Phase 1: Show lines sequentially on blurred background
   setTimeout(() => lines[0]?.classList.add('visible'), 600);
   setTimeout(() => lines[1]?.classList.add('visible'), 2200);
@@ -1091,14 +1075,12 @@ function playIntro() {
 
   // Phase 2: After lines are visible, hold, then unblur
   setTimeout(() => {
-    if (skipped) return;
     hideIntro();
     introBlurActive = false;
     container.classList.remove('intro-blur');
 
     // Phase 3: After unblur transition completes, start zoom + spin
     setTimeout(() => {
-      if (skipped) return;
       document.getElementById('hint-text').classList.remove('hidden');
       startZoom();
     }, 1300);
