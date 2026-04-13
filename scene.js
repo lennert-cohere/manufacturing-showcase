@@ -1045,34 +1045,59 @@ function playIntro() {
   isAnimating = true; controls.autoRotate = false;
   camera.position.set(55, 35, 55);
   const lookAt = new THREE.Vector3(0, 2, 0);
-  camera.lookAt(lookAt);
+  camera.lookAt(lookAt); controls.target.copy(lookAt);
 
+  const container = document.getElementById('scene-container');
   const introEl = document.getElementById('intro-text');
   const lines = [document.getElementById('intro-line-1'), document.getElementById('intro-line-2'), document.getElementById('intro-line-3')];
+
+  container.classList.add('intro-blur');
   introEl.classList.remove('hidden');
 
-  const showLine = (i, delay) => setTimeout(() => lines[i]?.classList.add('visible'), delay);
-  showLine(0, 300); showLine(1, 1100); showLine(2, 1900);
+  let skipped = false;
 
   const hideIntro = () => {
     lines.forEach(l => { l.classList.remove('visible'); l.classList.add('fade-out'); });
     setTimeout(() => introEl.classList.add('hidden'), 700);
   };
 
-  gsap.to(camera.position, {
-    x: CAM_DEFAULT.x, y: CAM_DEFAULT.y, z: CAM_DEFAULT.z, duration: 3.5, ease: 'power2.inOut',
-    onUpdate: () => { camera.lookAt(lookAt); controls.target.copy(lookAt); },
-    onComplete: () => { isAnimating = false; controls.autoRotate = true; hideIntro(); }
-  });
+  const startZoom = () => {
+    gsap.to(camera.position, {
+      x: CAM_DEFAULT.x, y: CAM_DEFAULT.y, z: CAM_DEFAULT.z, duration: 3.5, ease: 'power2.inOut',
+      onUpdate: () => { camera.lookAt(lookAt); controls.target.copy(lookAt); },
+      onComplete: () => { isAnimating = false; controls.autoRotate = true; }
+    });
+  };
+
   const skip = () => {
+    if (skipped) return;
+    skipped = true;
+    container.classList.remove('intro-blur');
     gsap.killTweensOf(camera.position);
     camera.position.set(CAM_DEFAULT.x, CAM_DEFAULT.y, CAM_DEFAULT.z);
     camera.lookAt(lookAt); controls.target.copy(lookAt);
     isAnimating = false; controls.autoRotate = true;
     hideIntro();
-    renderer.domElement.removeEventListener('click', skip);
   };
   renderer.domElement.addEventListener('click', skip, { once: true });
+
+  // Phase 1: Show lines sequentially on blurred background
+  setTimeout(() => lines[0]?.classList.add('visible'), 400);
+  setTimeout(() => lines[1]?.classList.add('visible'), 1400);
+  setTimeout(() => lines[2]?.classList.add('visible'), 2400);
+
+  // Phase 2: After lines are visible, hold briefly, then unblur
+  setTimeout(() => {
+    if (skipped) return;
+    hideIntro();
+    container.classList.remove('intro-blur');
+
+    // Phase 3: After unblur transition completes, start zoom + spin
+    setTimeout(() => {
+      if (skipped) return;
+      startZoom();
+    }, 1300);
+  }, 4000);
 }
 
 // ─── Auto-Pilot Tour ─────────────────────────────────────────────────────────
