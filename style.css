@@ -24,7 +24,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-d
 
 #scene-container { position: fixed; inset: 0; z-index: 1; transition: filter 1.2s ease; }
 #scene-container.intro-blur { filter: blur(18px) brightness(0.7); }
-#scene-container.intro-blur .css2d-layer { visibility: hidden; }
 #scene-container canvas { display: block; }
 
 /* ── Loading Screen ──────────────────────────────────────────────────────── */
@@ -282,6 +281,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-d
   text-shadow: 0 1px 6px rgba(14,26,20,0.9);
 }
 .platform-label .agent-dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; animation: pulse-dot 2s infinite ease-in-out; }
+.intro-blur .platform-label .agent-dot { animation-play-state: paused; }
 @keyframes pulse-dot { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
 .agent-sublabel { pointer-events: none; text-align: center; }
