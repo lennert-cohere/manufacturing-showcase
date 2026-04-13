@@ -36,6 +36,7 @@ let pointerDownPos = null;
 let zoomedData = null, zoomedType = null, detailModalOpen = false;
 let incidentActive = false, incidentPacket = null, activeScenarioSteps = null, incidentRunId = 0, activeScenarioIdx = -1;
 let dropdownOpen = false, pendingScenarioIdx = -1;
+let introBlurActive = true;
 
 // Platform animation refs
 const conveyorCubes = [];
@@ -1072,6 +1073,7 @@ function playIntro() {
   const skip = () => {
     if (skipped) return;
     skipped = true;
+    introBlurActive = false;
     container.classList.remove('intro-blur');
     gsap.killTweensOf(camera.position);
     camera.position.set(CAM_DEFAULT.x, CAM_DEFAULT.y, CAM_DEFAULT.z);
@@ -1090,6 +1092,7 @@ function playIntro() {
   setTimeout(() => {
     if (skipped) return;
     hideIntro();
+    introBlurActive = false;
     container.classList.remove('intro-blur');
 
     // Phase 3: After unblur transition completes, start zoom + spin
@@ -1358,6 +1361,7 @@ function animate() {
   const t = clock.getElapsedTime();
   controls.update();
 
+  if (!introBlurActive) {
   // Compass crystal
   if (compassCrystal) {
     compassCrystal.rotation.y = t * 0.2;
@@ -1427,9 +1431,8 @@ function animate() {
     const pulse = 0.7 + Math.sin(t * 3 + si * 1.5) * 0.3;
     sn.material.opacity = pulse;
   }
-
   // Conveyor belt cubes
-  if (conveyorGroup && conveyorCubes.length > 0) {
+  if (!introBlurActive && conveyorGroup && conveyorCubes.length > 0) {
     const move = dt * BELT_SPEED;
     for (let i = conveyorCubes.length - 1; i >= 0; i--) {
       const cube = conveyorCubes[i];
@@ -1453,6 +1456,9 @@ function animate() {
     }
   }
 
+  } // end !introBlurActive
+
+  if (!introBlurActive) {
   // Knowledge Hub — floating docs bob + knowledge graph breathes
   knowledgeDocPanels.forEach(panel => {
     panel.position.y = panel.userData.baseY + Math.sin(t * 0.5 + panel.userData.phaseOffset) * 0.08;
@@ -1509,6 +1515,7 @@ function animate() {
       dot.material.opacity = Math.sin(prog * Math.PI) * 0.85;
     });
   }
+  } // end !introBlurActive (platform animations)
 
   // Incident packet pulse
   if (incidentPacket) {
