@@ -1082,11 +1082,11 @@ function playIntro() {
   renderer.domElement.addEventListener('click', skip, { once: true });
 
   // Phase 1: Show lines sequentially on blurred background
-  setTimeout(() => lines[0]?.classList.add('visible'), 400);
-  setTimeout(() => lines[1]?.classList.add('visible'), 1400);
-  setTimeout(() => lines[2]?.classList.add('visible'), 2400);
+  setTimeout(() => lines[0]?.classList.add('visible'), 600);
+  setTimeout(() => lines[1]?.classList.add('visible'), 2200);
+  setTimeout(() => lines[2]?.classList.add('visible'), 3800);
 
-  // Phase 2: After lines are visible, hold briefly, then unblur
+  // Phase 2: After lines are visible, hold, then unblur
   setTimeout(() => {
     if (skipped) return;
     hideIntro();
@@ -1097,7 +1097,7 @@ function playIntro() {
       if (skipped) return;
       startZoom();
     }, 1300);
-  }, 4000);
+  }, 6000);
 }
 
 // ─── Auto-Pilot Tour ─────────────────────────────────────────────────────────
