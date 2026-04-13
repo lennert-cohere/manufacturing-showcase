@@ -1080,6 +1080,7 @@ function playIntro() {
     camera.lookAt(lookAt); controls.target.copy(lookAt);
     isAnimating = false; controls.autoRotate = true;
     hideIntro();
+    document.getElementById('hint-text').classList.remove('hidden');
   };
   renderer.domElement.addEventListener('click', skip, { once: true });
 
@@ -1098,6 +1099,7 @@ function playIntro() {
     // Phase 3: After unblur transition completes, start zoom + spin
     setTimeout(() => {
       if (skipped) return;
+      document.getElementById('hint-text').classList.remove('hidden');
       startZoom();
     }, 1300);
   }, 6000);
