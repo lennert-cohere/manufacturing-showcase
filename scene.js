@@ -85,6 +85,7 @@ function init() {
   cssRenderer.domElement.style.top = '0';
   cssRenderer.domElement.style.left = '0';
   cssRenderer.domElement.style.pointerEvents = 'none';
+  cssRenderer.domElement.classList.add('css2d-layer');
   document.getElementById('scene-container').appendChild(cssRenderer.domElement);
 
   controls = new OrbitControls(camera, renderer.domElement);
@@ -1051,7 +1052,6 @@ function playIntro() {
   const introEl = document.getElementById('intro-text');
   const lines = [document.getElementById('intro-line-1'), document.getElementById('intro-line-2'), document.getElementById('intro-line-3')];
 
-  container.classList.add('intro-blur');
   introEl.classList.remove('hidden');
 
   let skipped = false;
