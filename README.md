@@ -52,31 +52,3 @@ To set up on a new repo:
 3. Set source to **GitHub Actions**
 4. The workflow will run automatically on the next push
 
-### Other options
-
-Since this is a static site with no build step, it works with any static hosting:
-
-```bash
-# Vercel
-npx vercel
-
-# Netlify
-npx netlify deploy --prod --dir .
-
-# Firebase Hosting
-firebase init hosting   # set public dir to "."
-firebase deploy
-
-# Any static server
-npx serve .
-```
-
-### Offline use (events with no WiFi)
-
-The app loads Three.js, GSAP, and fonts from CDNs. For offline use, download these assets locally:
-
-1. Save `three.module.js` + addons from unpkg.com into a `lib/` folder
-2. Save `gsap` from esm.sh into `lib/`
-3. Save the `.woff2` font files from cohere.com into a `fonts/` folder
-4. Update the `importmap` in `index.html` and `@font-face` URLs in `style.css` to point to the local paths
-5. Serve locally with `npx serve .`
