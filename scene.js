@@ -61,6 +61,7 @@ const TOUR_INTERVAL = 14000;
 
 // Demo loop (trade-show mode)
 let demoLoopActive = false, demoLoopTimer = null, demoLoopIdx = -1;
+let wakeLock = null;
 const DEMO_LOOP_GAP_MS = 30000;
 const DEMO_LOOP_BRIEF_MS = 9000;
 
@@ -784,6 +785,11 @@ function setupInteractions() {
   document.getElementById('fs-btn').addEventListener('click', toggleFS);
   document.getElementById('tour-btn').addEventListener('click', toggleTour);
   document.getElementById('demo-loop-btn').addEventListener('click', toggleDemoLoop);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && demoLoopActive && !wakeLock) {
+      requestWakeLock();
+    }
+  });
   // Populate scenario dropdown
   const menu = document.getElementById('scenario-menu');
   SCENARIOS.forEach((sc, i) => {
@@ -1210,6 +1216,23 @@ function tourNext() {
 }
 
 // ─── Demo Loop (Trade-Show Mode) ─────────────────────────────────────────────
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (err) {
+    wakeLock = null;
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
+}
+
 function toggleDemoLoop() {
   if (demoLoopActive) stopDemoLoop();
   else startDemoLoop();
@@ -1222,6 +1245,7 @@ function startDemoLoop() {
   closeDropdown();
   demoLoopActive = true;
   demoLoopIdx = -1;
+  requestWakeLock();
   const btn = document.getElementById('demo-loop-btn');
   btn.classList.add('active');
   btn.textContent = 'Stop Loop';
@@ -1232,6 +1256,7 @@ function stopDemoLoop() {
   demoLoopActive = false;
   clearTimeout(demoLoopTimer);
   demoLoopTimer = null;
+  releaseWakeLock();
   const btn = document.getElementById('demo-loop-btn');
   btn.classList.remove('active');
   btn.textContent = 'Demo Loop';
