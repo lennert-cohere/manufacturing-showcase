@@ -59,6 +59,10 @@ let tourActive = false, tourTimer = null, tourIndex = -1;
 const TOUR_ORDER = ['north', 0, 1, 2, 3, 4];
 const TOUR_INTERVAL = 14000;
 
+// Demo loop (trade-show mode)
+let demoLoopActive = false, demoLoopTimer = null, demoLoopIdx = -1;
+const DEMO_LOOP_GAP_MS = 30000;
+
 // ─── Init ────────────────────────────────────────────────────────────────────
 function init() {
   clock = new THREE.Clock();
@@ -775,6 +779,7 @@ function setupInteractions() {
   document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
   document.getElementById('fs-btn').addEventListener('click', toggleFS);
   document.getElementById('tour-btn').addEventListener('click', toggleTour);
+  document.getElementById('demo-loop-btn').addEventListener('click', toggleDemoLoop);
   // Populate scenario dropdown
   const menu = document.getElementById('scenario-menu');
   SCENARIOS.forEach((sc, i) => {
@@ -786,6 +791,7 @@ function setupInteractions() {
     menu.appendChild(item);
   });
   document.getElementById('scenario-btn').addEventListener('click', () => {
+    if (demoLoopActive) stopDemoLoop();
     if (incidentActive) { endIncident(true); return; }
     toggleDropdown();
   });
@@ -1110,6 +1116,7 @@ function stopTour() {
 function toggleTour() {
   if (tourActive) stopTour();
   else {
+    if (demoLoopActive) stopDemoLoop();
     closeDetailModal();
     document.getElementById('zoom-actions').classList.add('hidden');
     if (selectedTarget !== null) {
@@ -1165,6 +1172,41 @@ function tourNext() {
   } else {
     doZoom();
   }
+}
+
+// ─── Demo Loop (Trade-Show Mode) ─────────────────────────────────────────────
+function toggleDemoLoop() {
+  if (demoLoopActive) stopDemoLoop();
+  else startDemoLoop();
+}
+
+function startDemoLoop() {
+  if (demoLoopActive) return;
+  if (tourActive) stopTour();
+  closeDropdown();
+  hideScenarioModal();
+  demoLoopActive = true;
+  demoLoopIdx = -1;
+  const btn = document.getElementById('demo-loop-btn');
+  btn.classList.add('active');
+  btn.textContent = 'Stop Loop';
+  demoLoopNext();
+}
+
+function stopDemoLoop() {
+  demoLoopActive = false;
+  clearTimeout(demoLoopTimer);
+  demoLoopTimer = null;
+  const btn = document.getElementById('demo-loop-btn');
+  btn.classList.remove('active');
+  btn.textContent = 'Demo Loop';
+  if (incidentActive) endIncident(true);
+}
+
+function demoLoopNext() {
+  if (!demoLoopActive) return;
+  demoLoopIdx = (demoLoopIdx + 1) % SCENARIOS.length;
+  startIncident(demoLoopIdx);
 }
 
 // ─── Live Incident Cascade ───────────────────────────────────────────────────
@@ -1315,6 +1357,11 @@ function endIncident(manual = false) {
   activeScenarioIdx = -1;
   zoomOut();
   setTimeout(() => { trustRings.forEach(r => gsap.to(r.material, { opacity: 0.05, duration: 2 })); }, 3000);
+
+  if (demoLoopActive && completedNaturally) {
+    clearTimeout(demoLoopTimer);
+    demoLoopTimer = setTimeout(demoLoopNext, DEMO_LOOP_GAP_MS);
+  }
 }
 
 function showKpiSummary() {
