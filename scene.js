@@ -62,6 +62,10 @@ const TOUR_INTERVAL = 14000;
 // Demo loop (trade-show mode)
 let demoLoopActive = false, demoLoopTimer = null, demoLoopIdx = -1;
 const DEMO_LOOP_GAP_MS = 30000;
+const DEMO_LOOP_BRIEF_MS = 5000;
+
+// Intro
+let introTimeouts = [];
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 function init() {
@@ -795,8 +799,14 @@ function setupInteractions() {
     if (incidentActive) { endIncident(true); return; }
     toggleDropdown();
   });
-  document.getElementById('modal-run').addEventListener('click', confirmScenario);
-  document.getElementById('modal-abort').addEventListener('click', hideScenarioModal);
+  document.getElementById('modal-run').addEventListener('click', () => {
+    if (demoLoopActive) { clearTimeout(demoLoopTimer); demoLoopTimer = null; }
+    confirmScenario();
+  });
+  document.getElementById('modal-abort').addEventListener('click', () => {
+    if (demoLoopActive) stopDemoLoop();
+    else hideScenarioModal();
+  });
   document.addEventListener('click', (e) => {
     if (dropdownOpen && !document.getElementById('scenario-dropdown').contains(e.target)) closeDropdown();
   });
@@ -1061,9 +1071,11 @@ function playIntro() {
 
   introEl.classList.remove('hidden');
 
+  const addT = (fn, ms) => { const id = setTimeout(fn, ms); introTimeouts.push(id); return id; };
+
   const hideIntro = () => {
     lines.forEach(l => { l.classList.remove('visible'); l.classList.add('fade-out'); });
-    setTimeout(() => introEl.classList.add('hidden'), 700);
+    addT(() => introEl.classList.add('hidden'), 700);
   };
 
   const startZoom = () => {
@@ -1075,22 +1087,44 @@ function playIntro() {
   };
 
   // Phase 1: Show lines sequentially on blurred background
-  setTimeout(() => lines[0]?.classList.add('visible'), 600);
-  setTimeout(() => lines[1]?.classList.add('visible'), 2200);
-  setTimeout(() => lines[2]?.classList.add('visible'), 3800);
+  addT(() => lines[0]?.classList.add('visible'), 600);
+  addT(() => lines[1]?.classList.add('visible'), 2200);
+  addT(() => lines[2]?.classList.add('visible'), 3800);
 
   // Phase 2: After lines are visible, hold, then unblur
-  setTimeout(() => {
+  addT(() => {
     hideIntro();
     introBlurActive = false;
     container.classList.remove('intro-blur');
 
     // Phase 3: After unblur transition completes, start zoom + spin
-    setTimeout(() => {
+    addT(() => {
       document.getElementById('hint-text').classList.remove('hidden');
       startZoom();
     }, 1300);
   }, 6000);
+}
+
+function skipIntroIfActive() {
+  if (!introBlurActive && !isAnimating) return false;
+  introTimeouts.forEach(clearTimeout);
+  introTimeouts = [];
+  gsap.killTweensOf(camera.position);
+  camera.position.set(CAM_DEFAULT.x, CAM_DEFAULT.y, CAM_DEFAULT.z);
+  const lookAt = new THREE.Vector3(CAM_TARGET.x, CAM_TARGET.y, CAM_TARGET.z);
+  camera.lookAt(lookAt); controls.target.copy(lookAt);
+  introBlurActive = false;
+  isAnimating = false;
+  controls.autoRotate = true;
+  document.getElementById('scene-container').classList.remove('intro-blur');
+  const introEl = document.getElementById('intro-text');
+  [1, 2, 3].forEach(n => {
+    const el = document.getElementById(`intro-line-${n}`);
+    el.classList.remove('visible'); el.classList.remove('fade-out');
+  });
+  introEl.classList.add('hidden');
+  document.getElementById('hint-text').classList.remove('hidden');
+  return true;
 }
 
 // ─── Auto-Pilot Tour ─────────────────────────────────────────────────────────
@@ -1117,6 +1151,7 @@ function toggleTour() {
   if (tourActive) stopTour();
   else {
     if (demoLoopActive) stopDemoLoop();
+    skipIntroIfActive();
     closeDetailModal();
     document.getElementById('zoom-actions').classList.add('hidden');
     if (selectedTarget !== null) {
@@ -1182,9 +1217,9 @@ function toggleDemoLoop() {
 
 function startDemoLoop() {
   if (demoLoopActive) return;
+  skipIntroIfActive();
   if (tourActive) stopTour();
   closeDropdown();
-  hideScenarioModal();
   demoLoopActive = true;
   demoLoopIdx = -1;
   const btn = document.getElementById('demo-loop-btn');
@@ -1200,13 +1235,20 @@ function stopDemoLoop() {
   const btn = document.getElementById('demo-loop-btn');
   btn.classList.remove('active');
   btn.textContent = 'Demo Loop';
+  hideScenarioModal();
   if (incidentActive) endIncident(true);
 }
 
 function demoLoopNext() {
   if (!demoLoopActive) return;
   demoLoopIdx = (demoLoopIdx + 1) % SCENARIOS.length;
-  startIncident(demoLoopIdx);
+  const idx = demoLoopIdx;
+  showScenarioModal(idx);
+  demoLoopTimer = setTimeout(() => {
+    if (!demoLoopActive) return;
+    hideScenarioModal();
+    startIncident(idx);
+  }, DEMO_LOOP_BRIEF_MS);
 }
 
 // ─── Live Incident Cascade ───────────────────────────────────────────────────
