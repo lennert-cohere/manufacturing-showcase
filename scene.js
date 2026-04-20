@@ -62,7 +62,7 @@ const TOUR_INTERVAL = 14000;
 // Demo loop (trade-show mode)
 let demoLoopActive = false, demoLoopTimer = null, demoLoopIdx = -1;
 const DEMO_LOOP_GAP_MS = 30000;
-const DEMO_LOOP_BRIEF_MS = 5000;
+const DEMO_LOOP_BRIEF_MS = 9000;
 
 // Intro
 let introTimeouts = [];
@@ -1424,7 +1424,7 @@ function showKpiSummary() {
   setTimeout(() => {
     el.classList.remove('visible');
     setTimeout(() => el.classList.add('hidden'), 500);
-  }, 4000);
+  }, 8000);
 }
 
 // ─── Animation Loop ──────────────────────────────────────────────────────────
